@@ -1,0 +1,145 @@
+import datetime
+import time
+import os
+import csv
+import pandas as pd
+SEPARADOR = "-" * 80
+
+folio=0 #para folios consecutivos
+registro_serv_csv={}
+columnas=["Fecha", "Folio", "Nombre", "Descripcion Servicio", "Descripcion Equipo" , "Cantidad", "Subtotal", "Total"]
+#estrctura para que pudiera grabar los datos
+def creacion_folio():
+    registro = open("folio.csv", "w")
+    registro.write(str(folio))
+
+try:
+    with open("folio.csv", "r") as archivo:
+        lector = csv.reader(archivo)
+        for folio_csv in lector:
+            folio_list = folio_csv
+except:
+    creacion_folio()
+
+with open("folio.csv", "r") as archivo:
+  lector = csv.reader(archivo)
+  for folio_csv in lector:
+      folio_list = folio_csv
+
+folio=int(folio_list[-1])      #de esta manera se igualará de la variable previa
+
+while True:
+    print("\n* * * M E N Ú * * * ") #primer menú de acciones a ejecutar
+    print(SEPARADOR)
+    print("1. Registrar un servicio")
+    print("2. Consultar un servicio según folio")
+    print("3. Consultar un servicio según fecha")
+    print("4. Salir")
+    print(SEPARADOR)
+    opcion = input("Ingrese una opcion: ") 
+    
+    if opcion == '1':
+
+        folio=folio+1   
+        folio_list.append(folio)  #se agrega el número de folio dentro
+        creacion_folio()
+                 
+        print(f" \n ********** FOLIO DEL NUEVO SERVICIO: {folio} **********")
+
+        while True:           
+                print("\n S E R V I C I O  D E  S O P O R T E  T E C N I C O") #segundo menú para los servicios que se ofrecen
+                print("1. Auditoría de Software y/o Hardware") 
+                print("2. Reparaciones técnicas") 
+                print("3. Reinstalación de Software") 
+                print("4. Recuperación de Datos") 
+                print("5. Políticas de Seguridad y/o Backups") 
+                print("6. Otros servicios")
+                opcion_servicio = int(input("\nMencione el servicio a atender para su equipo, o escriba 0 para salir: "))       
+
+                if opcion_servicio == 1:
+                    descrip_servicio = " Auditoría Software y/o Hardware"
+                elif opcion_servicio == 2:
+                    descrip_servicio = "Reparaciones técnicas"
+                elif opcion_servicio == 3:
+                    descrip_servicio = "Reinstalación de software"
+                elif opcion_servicio == 4:
+                    descrip_servicio == "Recuperación de datos"
+                elif opcion_servicio == 5:
+                    descrip_servicio = "Políticas de seguridad y/o Backups"
+                elif opcion_servicio == 6:
+                    descrip_servicio = input("Ingrese el nombre o descripción del servicio: ")
+                else:
+                    break
+                break
+        
+        while True:
+            #se elaboran las listas para ir agregando los datos
+            nombre_list=[]
+            descrip_serv_list=[]
+            descripcion_list=[]
+            cantidad_list=[]
+            precio_list=[]
+            fecha_list=[]
+            cargo_sin_iva=[]
+            
+            nombre=input("Nombre del cliente: ")
+            nombre_list.append(nombre)
+
+            descrip_serv_list.append(descrip_servicio)
+            
+            descripcion=input("Descripción del equipo: ")
+            descripcion_list.append(descripcion)
+            
+            cantidad=int(input("Cantidad de equipos a revisar: "))
+            cantidad_list.append(cantidad)
+            
+            precio=float(input("Cargo del servicio: "))
+            cargo = precio*cantidad
+            cargo_sin_iva.append(precio)    
+            iva=0.16
+            cargo_iva= cargo * iva
+            cargo_total = cargo + cargo_iva
+            precio_list.append(cargo_total)
+        
+            fecha = datetime.datetime.now()
+            fecha_hoy = fecha.strftime('%d/%m/%Y')
+            fecha_list.append(str(fecha_hoy))
+            
+            registro_serv_csv["Folio"]=folio
+            registro_serv_csv["Nombre"]=nombre_list
+            registro_serv_csv["Descripcion Servicio"]=descrip_serv_list
+            registro_serv_csv["Descripcion Equipo"]=descripcion_list
+            registro_serv_csv["Cantidad"]=cantidad_list
+            registro_serv_csv["Precio sin IVA"]=cargo_sin_iva
+            registro_serv_csv["Monto total"]= precio_list
+            registro_serv_csv["Fecha"]=fecha_list
+
+            
+            DF_REPORTE_SERV=pd.DataFrame(registro_serv_csv) #se produce el reporte de servicio a través un dataframe de pandas de python
+            rute = "Datos.csv"
+            DF_REPORTE_SERV.to_csv(rute, index=None, mode="a", header=not os.path.isfile(rute))  #se aumenta el valor de la variable Folio
+            
+
+            opcion_captura = input("\n¿Seguir registrando servicios? SI = 1, NO = 0: ")
+            if opcion_captura == "0":
+                print("Monto total: ",cargo_total)
+                break
+
+    elif opcion == '2':
+        print(SEPARADOR)
+        data = pd.read_csv('datos.csv')
+        df_datos_capturados = pd.DataFrame(data)
+        busqueda_folio=int(input("Folio del servicio a consultar: "))
+        folio_datos = df_datos_capturados[df_datos_capturados['Folio']==busqueda_folio] #se realiza la búsqueda a través del folio asignado
+        print(folio_datos)
+        print(SEPARADOR)
+
+    elif opcion == '3':
+        print(SEPARADOR)
+        data = pd.read_csv('datos.csv')
+        df_datos_capturados = pd.DataFrame(data) #se realiza la búsqueda a través de la fecha de la elaboración
+        print(df_datos_capturados)
+        print(SEPARADOR)
+
+    elif opcion=="4":
+        break
